@@ -1,4 +1,4 @@
-from dateparser.date import DateDataParser
+import dateparser
 import requests
 import duckdb
 import pandas as pd
@@ -16,14 +16,19 @@ for row in table.find_all('tr')[1:]:
     plugin_data = {
         'name': cols[0].text.strip(),
         'summary': cols[1].text.strip(),
-        'status': cols[2].text.strip(),
-        'date': cols[3].text.strip()
+        'date': cols[2].text.strip(),
+        'status': cols[3].text.strip(),
     }
     plugins.append(plugin_data)
 
-ddp = DateDataParser()
+
+def dt2iso(dt: str) -> str:
+    x = dateparser.parse(dt)
+    return x.date().isoformat()
+
+
 df = pd.DataFrame(plugins)
-df['date'] = df['date'].map(ddp.get_date_data)
+df['date'] = df['date'].map(dt2iso)
 
 con = duckdb.connect('db.duck')
 _ = con.execute("DROP TABLE IF EXISTS plugins")
